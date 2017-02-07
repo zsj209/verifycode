@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hrocloud.tiangong.verifycode.mapper.CaptchaMapper">
+	<resultMap id="captchaMap" type="com.hrocloud.tiangong.verifycode.model.Captcha">
+        <result column="id" property="id"/>
+        <result column="cid" property="cid"/>
+        <result column="value" property="value"/>
+        <collection property="imgUrls" ofType="com.hrocloud.tiangong.verifycode.model.CaptchaImg" javaType="ArrayList">
+	        <id property="id" column="image_id"/>
+	        <result column="captcha_cid" property="captchaCid"/>
+	        <result column="tfs_key" property="fdfsKey"/>
+	    </collection>
+	</resultMap>
+	
+	<select id="getCaptchaByCid" resultMap="captchaMap">
+		select c.id, c.cid, c.value, i.id as image_id, i.captcha_cid, i.tfs_key
+		from captcha as c
+		left join captcha_image as i on i.captcha_cid = c.cid
+		where cid = #{cid}
+	</select>
+	
+	<insert id="insertCaptcha" parameterType="java.util.List">
+		INSERT INTO captcha (cid, value) VALUES 
+		<foreach collection="list" index="index" item="item" separator=",">
+		(#{item.cid}, #{item.value})
+		</foreach>
+	</insert>
+	
+	<insert id="insertCaptchaImg" parameterType="java.util.List">
+		INSERT INTO captcha_image (captcha_cid, tfs_key) 
+		VALUES 
+		<foreach collection="list" index="index" item="item" separator=",">
+			(#{item.captchaCid}, #{item.fdfsKey})
+		</foreach>
+	</insert>
+	
+	<select id="countCaptchaByCidPrefix"  resultType="java.lang.Integer">
+		select count(1) from captcha where cid like concat(#{cidPrefix},'%')   
+	</select>
+	
+	<select id="findLastCaptchaValueByCidPrefix" resultType="java.lang.String">
+		select value from captcha where cid like concat(#{cidPrefix},'%') order by id desc limit 1
+	</select>
+</mapper>

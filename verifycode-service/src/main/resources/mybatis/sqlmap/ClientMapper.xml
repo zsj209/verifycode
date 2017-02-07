@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hrocloud.tiangong.verifycode.mapper.ClientMapper">
+	<resultMap id="clientMap" type="com.hrocloud.tiangong.verifycode.model.Client">
+		<result column="id" property="id" />
+		<result column="client_id" property="clientId" />
+		<result column="client_pass" property="clientPass"/>
+		<result column="description" property="description"/>
+		<result column="version" property="version" />
+		<association property="captchaRule" javaType="com.hrocloud.tiangong.verifycode.model.CaptchaRule">
+	        <id property="id" column="rule_id"/>  
+	        <result column="captcha_number" property="captchaNumber"/>  
+	        <result column="img_number" property="imgNumber"/>  
+	        <result column="scheduler" property="scheduler"/>  
+	        <result column="auto_update" property="autoUpdate"/>  
+	    </association>
+	    <association property="captchaTemplate" javaType="com.hrocloud.tiangong.verifycode.model.CaptchaTemplate">
+	        <id property="id" column="template_id"/>  
+	        <result column="value_type" property="valueType"/>  
+	        <result column="length" property="length"/>
+	        <result column="height" property="height"/>  
+	        <result column="width" property="width"/>
+	        <result column="font" property="font"/>  
+	        <result column="font_height" property="fontHeight"/>  
+	        <result column="bg_color" property="bgColor"/>  
+	        <result column="border_color" property="borderColor"/>
+	        <result column="interfering_style" property="interferingStyle"/>  
+	        <result column="interfering_max" property="interferingMax"/>
+	        <result column="interfering_min" property="interferingMin"/>  
+	    </association>
+	</resultMap>
+
+	<select id="getClientById" resultMap="clientMap">
+		select c.id, c.client_id, client_pass, description, version,
+		r.id as rule_id, captcha_number, img_number, scheduler, auto_update,
+		t.id as template_id, t.length, value_type, height, width, font, font_height, bg_color, border_color,
+		interfering_style, interfering_max, interfering_min
+		from client as c
+		left join captcha_rule as r on r.client_id = c.id
+		left join captcha_template as t on t.client_id = c.id
+		where c.client_id=#{clientId} and active = '1'
+	</select>
+	
+	<update id="update" parameterType="map">
+      UPDATE client  
+      <trim prefix="SET" suffixOverrides=",">
+        <if test="client_pass != null">client_pass = #{clientPass},</if>
+        <if test="description != null">description = #{description},</if>
+        <if test="version != null">version = #{version},</if>
+      </trim>
+      WHERE client_id = #{clientId}
+    </update>
+    
+    <update id="delete">
+      UPDATE client SET 
+        active = '0'
+      WHERE client_id = #{clientId}
+    </update>
+    
+    <update id="active">
+      UPDATE client SET 
+        active = '1'
+      WHERE client_id = #{clientId}
+    </update>
+</mapper>

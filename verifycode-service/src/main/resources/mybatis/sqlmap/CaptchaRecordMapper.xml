@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hrocloud.tiangong.verifycode.mapper.CaptchaRecordMapper">
+	<resultMap id="captchaRecordMap" type="com.hrocloud.tiangong.verifycode.model.CaptchaRecord">
+		<result column="id" property="id" />
+		<result column="client_id" property="clientId" />
+		<result column="current_version" property="currentVersion"/>
+		<result column="next_version" property="nextVersion"/>
+		<result column="status" property="status" />
+		<association property="captchaRule" javaType="com.hrocloud.tiangong.verifycode.model.CaptchaRule">
+	        <id property="id" column="rule_id"/>  
+	        <result property="captcha_number" column="captchaNumber"/>  
+	        <result property="img_number" column="imgNumber"/>  
+	        <result property="scheduler" column="scheduler"/>  
+	        <result property="auto_update" column="autoUpdate"/>  
+	    </association>
+	    <association property="captchaTemplate" javaType="com.hrocloud.tiangong.verifycode.model.CaptchaTemplate">
+	        <id property="id" column="template_id"/>  
+	        <result property="value_type" column="valueType"/>  
+	        <result property="height" column="height"/>  
+	        <result property="width" column="width"/>
+	        <result property="font" column="font"/>  
+	        <result property="font_height" column="fontHeight"/>  
+	        <result property="bg_color" column="bgColor"/>  
+	        <result property="border_color" column="borderColor"/>
+	        <result property="interfering_style" column="interferingStyle"/>  
+	        <result property="interfering_max" column="interferingMax"/>
+	        <result property="interfering_min" column="interferingMin"/>  
+	    </association>
+	</resultMap>
+		
+	<sql id="allColumnName">
+		`id`, `client_id`, `current_version`, `status`, `captcha_number`, `img_number`,
+		`scheduler`, `auto_update`, `value_type`, `height`, `width`, `font`,
+		`font_height`, `bg_color`, `border_color`, `interfering_style`, `interfering_max`, `interfering_min`
+	</sql>
+	
+	<sql id="sqlCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="clientId != null">AND client_id = #{clientId}</if>
+			<if test="currentVersion != null">AND current_version = #{currentVersion}</if>
+		</trim>
+	</sql>
+	
+	<select id="getCaptchaRecord" resultMap="captchaRecordMap">
+		select
+		<include refid="allColumnName" />
+		from captcha_record
+		<include refid="sqlCondition" />
+	</select>
+	
+	
+	<insert id="insert" keyProperty="id"  useGeneratedKeys="true" parameterType="com.hrocloud.tiangong.verifycode.model.CaptchaRecord">
+		INSERT INTO captcha_record(client_id, current_version, status, captcha_number, img_number, scheduler,
+		auto_update, value_type, height, width, font, font_height, bg_color, border_color, 
+		interfering_style, interfering_max, interfering_min)
+		VALUES(#{clientId}, #{currentVersion}, #{status}, #{captchaRule.captchaNumber}, #{captchaRule.imgNumber},
+		#{captchaRule.scheduler}, #{captchaRule.autoUpdate}, #{captchaTemplate.valueType},
+		#{captchaTemplate.height}, #{captchaTemplate.width}, #{captchaTemplate.font}, #{captchaTemplate.fontHeight},
+		#{captchaTemplate.bgColor}, #{captchaTemplate.borderColor}, #{captchaTemplate.interferingStyle}, 
+		#{captchaTemplate.interferingMax}, #{captchaTemplate.interferingMin})
+	</insert>
+	
+	<update id="updateRecordStatus">
+		update captcha_record set
+			status =#{status}
+		where id = #{id}
+	</update>
+</mapper>
